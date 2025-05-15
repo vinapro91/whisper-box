@@ -9,13 +9,10 @@ import logging
 
 app = Flask(__name__)
 
-# Configuração básica do logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
-# Carrega o modelo Whisper base na inicialização
 model = whisper.load_model("base")
 
-# Dicionário simples para armazenar status/resultados das transcrições
 transcription_tasks = {}
 transcription_metadata = {}
 
@@ -42,11 +39,11 @@ def transcribe_audio():
     logging.info('Recebendo requisição de transcrição')
     if 'file' not in request.files:
         logging.warning('Nenhum arquivo enviado na requisição')
-        return jsonify({'error': 'Nenhum arquivo enviado.'}), 400
+        return jsonify({'error': 'No file sent.'}), 400
     file = request.files['file']
     if file.filename == '':
         logging.warning('Nome de arquivo vazio recebido')
-        return jsonify({'error': 'Nome de arquivo vazio.'}), 400
+        return jsonify({'error': 'Empty filename.'}), 400
     try:
         filename = secure_filename(file.filename)
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp:
@@ -60,19 +57,19 @@ def transcribe_audio():
         return jsonify({'task_id': task_id}), 202
     except Exception as e:
         logging.error(f'Erro ao processar o arquivo: {e}')
-        return jsonify({'error': f'Erro ao processar o arquivo: {str(e)}'}), 500
+        return jsonify({'error': f'Error processing file: {str(e)}'}), 500
 
 @app.route('/transcription_status/<task_id>', methods=['GET'])
 def get_transcription_status(task_id):
     task = transcription_tasks.get(task_id)
     if not task:
-        return jsonify({'error': 'ID de tarefa não encontrado.'}), 404
+        return jsonify({'error': 'Task ID not found.'}), 404
     if task['status'] == 'processing':
         return jsonify({'status': 'processing'}), 202
     elif task['status'] == 'done':
-        return jsonify({'status': 'done', 'transcription': str(task['transcription'])}), 200
+        return jsonify({'status': 'done', 'transcription': task['transcription']}), 200
     else:
-        return jsonify({'status': 'error', 'error': task.get('error', 'Erro desconhecido')}), 500
+        return jsonify({'status': 'error', 'error': task.get('error', 'Unknown error')}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
