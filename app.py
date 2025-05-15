@@ -70,7 +70,7 @@ def get_transcription_status(task_id):
     if task['status'] == 'processing':
         return jsonify({'status': 'processing'}), 202
     elif task['status'] == 'done':
-        jsonify({'status': 'done', 'transcription': str(task['transcription'])}), 200
+        return jsonify({'status': 'done', 'transcription': str(task['transcription'])}), 200
     else:
         return jsonify({'status': 'error', 'error': task.get('error', 'Erro desconhecido')}), 500
 
